@@ -37,6 +37,33 @@ type GithubClient struct {
 	Owner      string
 }
 
+type withPreviewHeader struct {
+	http.Header
+	rt             http.RoundTripper
+	previewHeaders []string
+}
+
+func WithPreviewHeader(rt http.RoundTripper) withPreviewHeader {
+	if rt == nil {
+		rt = http.DefaultTransport
+	}
+
+	headers := make(http.Header)
+	previewHeaders := []string{"application/vnd.github.antiope-preview+json", "application/vnd.github.shadow-cat-preview"}
+	return withPreviewHeader{Header: headers, rt: rt, previewHeaders: previewHeaders}
+}
+
+func (h withPreviewHeader) RoundTrip(req *http.Request) (*http.Response, error) {
+	for k, v := range h.Header {
+		req.Header[k] = v
+	}
+
+	currentAccept := req.Header.Get("Accept")
+	// shadow-cat-preview: Draft pull requests
+	req.Header.Set("Accept", fmt.Sprintf("%s,%s", currentAccept, strings.Join(h.previewHeaders, ",")))
+	return h.rt.RoundTrip(req)
+}
+
 // NewGithubClient ...
 func NewGithubClient(s *Source) (*GithubClient, error) {
 	owner, repository, err := parseRepository(s.Repository)
@@ -47,6 +74,9 @@ func NewGithubClient(s *Source) (*GithubClient, error) {
 	// Skip SSL verification for self-signed certificates
 	// source: https://github.com/google/go-github/pull/598#issuecomment-333039238
 	var ctx context.Context
+
+	// Support Enterprise Server
+
 	if s.SkipSSLVerification {
 		insecureClient := &http.Client{Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -67,6 +97,8 @@ func NewGithubClient(s *Source) (*GithubClient, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse v3 endpoint: %s", err)
 		}
+		rt := WithPreviewHeader(client.Transport)
+		client.Transport = rt
 		v3, err = github.NewEnterpriseClient(endpoint.String(), endpoint.String(), client)
 		if err != nil {
 			return nil, err
@@ -81,6 +113,8 @@ func NewGithubClient(s *Source) (*GithubClient, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse v4 endpoint: %s", err)
 		}
+		rt := WithPreviewHeader(client.Transport)
+		client.Transport = rt
 		v4 = githubv4.NewEnterpriseClient(endpoint.String(), client)
 		if err != nil {
 			return nil, err
