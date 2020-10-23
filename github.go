@@ -43,13 +43,12 @@ type withPreviewHeader struct {
 	previewHeaders []string
 }
 
-func WithPreviewHeader(rt http.RoundTripper) withPreviewHeader {
+func WithPreviewHeader(rt http.RoundTripper, previewHeaders []string) withPreviewHeader {
 	if rt == nil {
 		rt = http.DefaultTransport
 	}
 
 	headers := make(http.Header)
-	previewHeaders := []string{"application/vnd.github.antiope-preview+json", "application/vnd.github.shadow-cat-preview"}
 	return withPreviewHeader{Header: headers, rt: rt, previewHeaders: previewHeaders}
 }
 
@@ -97,8 +96,6 @@ func NewGithubClient(s *Source) (*GithubClient, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse v3 endpoint: %s", err)
 		}
-		rt := WithPreviewHeader(client.Transport)
-		client.Transport = rt
 		v3, err = github.NewEnterpriseClient(endpoint.String(), endpoint.String(), client)
 		if err != nil {
 			return nil, err
@@ -113,7 +110,8 @@ func NewGithubClient(s *Source) (*GithubClient, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse v4 endpoint: %s", err)
 		}
-		rt := WithPreviewHeader(client.Transport)
+		previewV4Headers := []string{"application/vnd.github.antiope-preview+json", "application/vnd.github.shadow-cat-preview+json", "application/vnd.github.bane-preview+json"}
+		rt := WithPreviewHeader(client.Transport, previewV4Headers)
 		client.Transport = rt
 		v4 = githubv4.NewEnterpriseClient(endpoint.String(), client)
 		if err != nil {
