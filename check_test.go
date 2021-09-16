@@ -416,6 +416,45 @@ func TestFilterPath(t *testing.T) {
 	}
 }
 
+func TestFilterPathRegexp(t *testing.T) {
+	cases := []struct {
+		description string
+		pattern     string
+		files       []string
+		want        []string
+	}{
+		{
+			description: "returns all matching files",
+			pattern:     ".*",
+			files: []string{
+				"file1.txt",
+				"test/file2.txt",
+			},
+			want: []string{
+				"file1.txt",
+				"test/file2.txt",
+			},
+		},
+		{
+			description: "returns all matching files",
+			pattern:     "[a-z]+$",
+			files: []string{
+				"file1",
+				"file",
+			},
+			want: []string{
+				"file",
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			got := resource.FilterPathRegexp(tc.files, tc.pattern)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
 func TestFilterIgnorePath(t *testing.T) {
 	cases := []struct {
 		description string

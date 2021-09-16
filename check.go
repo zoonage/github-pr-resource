@@ -108,6 +108,18 @@ Loop:
 			}
 		}
 
+		// Skip version if no files match the specified paths.
+		if len(request.Source.PathRegexps) > 0 {
+			var wanted []string
+			for _, pattern := range request.Source.PathRegexps {
+				w := FilterPathRegexp(files, pattern)
+				wanted = append(wanted, w...)
+			}
+			if len(wanted) == 0 {
+				continue Loop
+			}
+		}
+
 		// Skip version if all files are ignored.
 		if len(request.Source.IgnorePaths) > 0 {
 			wanted := files
@@ -172,6 +184,18 @@ func FilterPath(files []string, pattern string) ([]string, error) {
 		}
 	}
 	return out, nil
+}
+
+// FilterPathRegexp ...
+func FilterPathRegexp(files []string, pattern string) []string {
+	var out []string
+	re := regexp.MustCompile(pattern)
+	for _, file := range files {
+		if re.MatchString(file) {
+			out = append(out, file)
+		}
+	}
+	return out
 }
 
 // IsInsidePath checks whether the child path is inside the parent path.

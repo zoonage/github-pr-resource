@@ -16,6 +16,7 @@ type Source struct {
 	V3Endpoint              string                      `json:"v3_endpoint"`
 	V4Endpoint              string                      `json:"v4_endpoint"`
 	Paths                   []string                    `json:"paths"`
+	PathRegexps             []string                    `json:"path_regexps"`
 	IgnorePaths             []string                    `json:"ignore_paths"`
 	DisableCISkip           bool                        `json:"disable_ci_skip"`
 	DisableGitLFS           bool                        `json:"disable_git_lfs"`
