@@ -95,7 +95,20 @@ func TestCheckE2E(t *testing.T) {
 			source: resource.Source{
 				Repository:  "itsdalmo/test-repository",
 				AccessToken: os.Getenv("GITHUB_ACCESS_TOKEN"),
-				Paths:       []string{".*.md"},
+				PathRegexps: []string{".*.md"},
+			},
+			version: resource.Version{},
+			expected: resource.CheckResponse{
+				resource.Version{PR: targetPullRequestID, Commit: targetCommitID, CommittedDate: targetDateTime},
+			},
+		},
+
+		{
+			description: "check will only return versions that match the specified path regexps",
+			source: resource.Source{
+				Repository:  "itsdalmo/test-repository",
+				AccessToken: os.Getenv("GITHUB_ACCESS_TOKEN"),
+				PathRegexps: []string{"^."},
 			},
 			version: resource.Version{},
 			expected: resource.CheckResponse{
