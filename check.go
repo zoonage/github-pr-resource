@@ -2,6 +2,7 @@ package resource
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -86,7 +87,7 @@ Loop:
 		// Fetch files once if paths/ignore_paths are specified.
 		var files []string
 
-		if len(request.Source.Paths) > 0 || len(request.Source.IgnorePaths) > 0 {
+		if len(request.Source.Paths) > 0 || len(request.Source.IgnorePaths) > 0 || len(request.Source.PathRegexps) > 0 {
 			files, err = manager.ListModifiedFiles(p.Number)
 			if err != nil {
 				return nil, fmt.Errorf("failed to list modified files: %s", err)
@@ -190,6 +191,7 @@ func FilterPath(files []string, pattern string) ([]string, error) {
 func FilterPathRegexp(files []string, pattern string) []string {
 	var out []string
 	re := regexp.MustCompile(pattern)
+	fmt.Fprintf(os.Stderr, "Checking %v against %v\n", pattern, files)
 	for _, file := range files {
 		if re.MatchString(file) {
 			out = append(out, file)
