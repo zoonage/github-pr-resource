@@ -191,7 +191,6 @@ func FilterPath(files []string, pattern string) ([]string, error) {
 func FilterPathRegexp(files []string, pattern string) []string {
 	var out []string
 	re := regexp.MustCompile(pattern)
-	fmt.Fprintf(os.Stderr, "Checking %v against %v\n", pattern, files)
 	for _, file := range files {
 		if re.MatchString(file) {
 			out = append(out, file)
