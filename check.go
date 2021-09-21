@@ -2,7 +2,6 @@ package resource
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
